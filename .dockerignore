@@ -1,0 +1,17 @@
+target/
+**/target/
+.cargo/
+.git/
+.github/
+.gitlab-ci.yml
+docs/
+vault/
+*.otpqcv2
+*.otseal
+*.log
+.env
+README.md
+LICENSE
+SECURITY.md
+docker-compose.yml
+seccomp-onionos.json

@@ -1,0 +1,22 @@
+# Rust & Cargo build artifacts
+target/
+**/target/
+.cargo/
+**/*.rs.bk
+
+# Secrets, Environment & Local Vaults (NEVER commit)
+.env
+.env.*
+!.env.example
+vault/
+*.otpqcv2
+*.otseal
+*.key
+*.pem
+hs_ed25519_secret_key
+
+# OS & Temp artifacts
+.DS_Store
+Thumbs.db
+tmp/
+*.log

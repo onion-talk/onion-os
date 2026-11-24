@@ -1,0 +1,123 @@
+name: OnionOS Sovereign CI & Docker Hub Release
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-C link-arg=-Wl,-z,relro,-z,now -C link-arg=-Wl,-z,noexecstack"
+
+jobs:
+  validate-and-security:
+    name: Validate Single-Container 3-UID Netfilter, Relay Pins & Zero-Leak Gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate entrypoint.sh syntax & pure LF line endings
+        run: |
+          sh -n entrypoint.sh
+          if LC_ALL=C grep -q $'\r' entrypoint.sh; then
+            echo "ERROR: CRLF detected in entrypoint.sh"
+            exit 1
+          fi
+
+      - name: Validate Docker Compose v2 & Sovereign v1.0.0 Invariants
+        run: |
+          docker compose config -q
+          grep -q '"127.0.0.1:8430:8430"' docker-compose.yml
+          grep -q "image: eriktonon/onion-os:1.0.0" docker-compose.yml
+          grep -q "read_only: true" docker-compose.yml
+          grep -q "pids_limit: 2048" docker-compose.yml
+          grep -q "mem_limit: 2048m" docker-compose.yml
+          grep -q "memswap_limit: 2048m" docker-compose.yml
+          grep -q "ONIONOS_RELAY_BIND_PORT=8088" docker-compose.yml
+          grep -q "eriktonon/oniontalk-web:v1.8.1-build74@sha256:c8f81fe7475441e5e8c94a48204c03064b102dec1d726547761d62ac6968d735" Dockerfile
+          grep -q "eriktonon/oniontalk-relay-rs:1.8.1@sha256:8af6943f1ffde9a8ed9d4d1b9a85fe7890b187ad05f81785189e482b7d6ce670" Dockerfile
+          grep -q -- "--sport 8430" entrypoint.sh
+          grep -q -- "--uid-owner 10016 -j ACCEPT" entrypoint.sh
+          grep -q -- "--reuid=10015" entrypoint.sh
+          grep -q -- "--bounding-set=-all" entrypoint.sh
+          grep -q -- "--no-new-privs" entrypoint.sh
+          jq empty policies.json
+          jq empty seccomp-onionos.json
+          jq -e '.policies.BlockAboutConfig == true and .policies.Homepage.Locked == true and .policies.DNSOverHTTPS.Enabled == false' policies.json >/dev/null
+          jq -e '.policies.Proxy.SOCKSProxy == "127.0.0.1:9050" and .policies.Proxy.UseProxyForDNS == true' policies.json >/dev/null
+          if [ -d core/static ] && grep -RInE 'https?://(fonts\.googleapis|fonts\.gstatic|cdn\.jsdelivr|unpkg\.com|cdnjs\.cloudflare)' core/static/; then
+            echo "CRITICAL: External CDN reference detected in core/static/"
+            exit 1
+          fi
+
+  rust-core-test:
+    name: Rust Core Build, Crypto, TOTP, QR, Relay & Forensics Self-Test
+    runs-on: ubuntu-latest
+    needs: validate-and-security
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install Rust stable toolchain
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+        with:
+          toolchain: stable
+
+      - name: Cache Cargo artifacts
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          workspaces: core
+
+      - name: Run cargo check & test suite
+        run: |
+          cargo check --manifest-path core/Cargo.toml --all-targets
+          cargo test --manifest-path core/Cargo.toml -- --nocapture
+
+      - name: Build release binary & execute cryptographic self-test
+        run: |
+          cargo build --release --manifest-path core/Cargo.toml
+          strip --strip-all core/target/release/onion-os
+          ./core/target/release/onion-os --self-test
+
+  container-build:
+    name: Consolidated Multi-Stage Container Build & Docker Hub Release Gate
+    runs-on: ubuntu-latest
+    needs: rust-core-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Build consolidated onion-os image & run self-test
+        run: |
+          docker compose build onion-os
+          docker run --rm --entrypoint /usr/local/bin/onion-os eriktonon/onion-os:1.0.0 --self-test
+
+      - name: Push Verified Image to Docker Hub (On Release Tags v* When Secrets Configured)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="${GITHUB_REF_NAME#v}"
+          if ! printf '%s\n' "$RELEASE_TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "ERROR: Invalid semver tag format: $RELEASE_TAG"
+            exit 1
+          fi
+          if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
+            printf '%s\n' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag eriktonon/onion-os:1.0.0 "eriktonon/onion-os:${RELEASE_TAG}"
+            docker tag eriktonon/onion-os:1.0.0 "eriktonon/onion-os:v${RELEASE_TAG}"
+            docker tag eriktonon/onion-os:1.0.0 "eriktonon/onion-os:latest"
+            docker push "eriktonon/onion-os:${RELEASE_TAG}"
+            docker push "eriktonon/onion-os:v${RELEASE_TAG}"
+            docker push "eriktonon/onion-os:latest"
+            echo "[OK] Published verified eriktonon/onion-os:${RELEASE_TAG} & :latest to Docker Hub."
+          else
+            echo "[INFO] DOCKERHUB_USERNAME / DOCKERHUB_TOKEN secrets not configured yet; skipping push."
+          fi

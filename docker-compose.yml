@@ -1,0 +1,115 @@
+services:
+  onion-os:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: eriktonon/onion-os:1.0.0
+    container_name: onion-os
+    restart: unless-stopped
+    read_only: true
+    shm_size: "512m"
+    pids_limit: 2048
+    mem_limit: 2048m
+    memswap_limit: 2048m
+    ulimits:
+      core: 0
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN
+      - SETUID
+      - SETGID
+      - SETPCAP
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:8430:8430"
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777
+      - /run:rw,noexec,nosuid,nodev,size=32m
+      - /var/lib/tor:rw,noexec,nosuid,nodev,size=64m,uid=10016,gid=10016,mode=0700
+      - /tor-cookie:rw,noexec,nosuid,nodev,size=4m,uid=10016,gid=10016,mode=0750
+      - /data:rw,noexec,nosuid,nodev,size=64m,uid=10014,gid=10014,mode=0700
+      - /sandbox-home:rw,noexec,nosuid,nodev,size=256m,uid=10015,gid=10015,mode=0700
+      - /home/onion:rw,nosuid,nodev,size=256m,uid=10014,gid=10014,mode=0700
+    volumes:
+      - onionos_vault:/vault
+    environment:
+      - ONIONOS_BIND_ADDR=0.0.0.0
+      - ONIONOS_BIND_PORT=8430
+      - ONIONOS_STATIC_DIR=/usr/share/onionos/static
+      - ONIONOS_VAULT_DIR=/vault
+      - ONIONOS_HOME_DIR=/home/onion
+      - ONIONOS_NETFILTER_FLAG=/run/onionos/netfilter.active
+      - ONIONOS_BROWSER_AGENT_URL=http://127.0.0.1:6902
+      - ONIONOS_BROWSER_TOKEN_FILE=/run/onionos/browser.token
+      - ONIONOS_RELAY_BIN=/usr/local/bin/oniontalk-relay-rs
+      - ONIONOS_RELAY_DATA_DIR=/data/relay
+      - ONIONOS_RELAY_BIND_PORT=8088
+      - TOR_SOCKS_ADDR=127.0.0.1:9050
+      - TOR_CONTROL_ADDR=127.0.0.1:9051
+      - TOR_CONTROL_COOKIE_FILE=/tor-cookie/control_auth_cookie
+      - TOR_COOKIE_FILE=/tor-cookie/control_auth_cookie
+      - ONIONTALK_INTERNAL_URL=http://127.0.0.1:8420
+      - SANDBOX_BROWSER_URL=http://127.0.0.1:6901
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/onion-os", "--healthcheck"]
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  oniontalk-messenger:
+    image: eriktonon/oniontalk-web:v1.8.1-build74@sha256:c8f81fe7475441e5e8c94a48204c03064b102dec1d726547761d62ac6968d735
+    container_name: oniontalk-messenger
+    profiles:
+      - whonix-split
+    user: "10014:10014"
+    restart: unless-stopped
+    read_only: true
+    pids_limit: 128
+    mem_limit: 256m
+    memswap_limit: 256m
+    ulimits:
+      core: 0
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m
+      - /data:rw,noexec,nosuid,nodev,size=64m,uid=10014,gid=10014,mode=0700
+      - /var/lib/tor:rw,noexec,nosuid,nodev,size=64m,uid=10014,gid=10014,mode=0700
+    environment:
+      - EXTERNAL_TOR=1
+      - PORT=8420
+      - ONIONTALK_RELAY_PORT=8080
+      - TOR_SOCKS_PORT=9050
+      - TOR_SOCKS_ADDR=10.250.0.2:9050
+      - ONIONTALK_DATA_DIR=/data
+      - ALL_PROXY=socks5h://10.250.0.2:9050
+      - HTTPS_PROXY=socks5h://10.250.0.2:9050
+      - HTTP_PROXY=socks5h://10.250.0.2:9050
+    networks:
+      onion_isolated:
+        ipv4_address: 10.250.0.11
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/oniontalk-node", "--healthcheck"]
+      interval: 20s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+networks:
+  onion_isolated:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.250.0.0/24
+
+volumes:
+  onionos_vault:

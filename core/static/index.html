@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" data-wallpaper="onion-mesh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="OnionOS — Sovereign Post-Quantum Onion Mesh Workstation &amp; Federated Relay">
+  <title>OnionOS — Sovereign Onion Mesh Desktop</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/assets/icons.js"></script>
+  <script defer src="/assets/wm.js"></script>
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <a href="#workspace-stage" class="skip-link">Skip to Desktop Workspace</a>
+
+  <!-- ========================================================================
+       GNOME GDM LOCK / SETUP SCREEN
+       ======================================================================== -->
+  <section id="gdm-screen" class="gdm-screen" aria-labelledby="gdm-user-title">
+    <canvas id="gdm-bg-canvas" class="mesh-bg-canvas" aria-hidden="true"></canvas>
+    <div class="gdm-topbar">
+      <span id="gdm-tor-status" class="tabular">Tor Gateway: Checking...</span>
+      <span id="gdm-uptime" class="tabular">OnionOS 1.0.0</span>
+    </div>
+
+    <div class="gdm-center">
+      <div class="gdm-clock-block">
+        <div id="gdm-clock" class="gdm-clock">00:00</div>
+        <div id="gdm-date" class="gdm-date">Loading date...</div>
+      </div>
+
+      <form id="form-gdm-unlock" class="gdm-auth-card" novalidate>
+        <div id="gdm-avatar" class="gdm-avatar" aria-hidden="true"></div>
+        <h1 id="gdm-user-title" class="gdm-user-title">OnionOS Sovereign</h1>
+        <span id="gdm-vault-badge" class="adw-pill-badge info">OTPQCV2 Post-Quantum Vault</span>
+
+        <div style="width: 100%;">
+          <label for="gdm-passphrase" id="gdm-pass-label" class="sr-only">Master Passphrase</label>
+          <div class="gdm-pass-row">
+            <input
+              id="gdm-passphrase"
+              name="passphrase"
+              type="password"
+              class="adw-entry mono"
+              minlength="12"
+              autocomplete="current-password"
+              placeholder="Passphrase (min 12 chars)..."
+              required
+            >
+            <button type="button" id="btn-gdm-eye" class="adw-btn" aria-label="Toggle passphrase visibility"></button>
+          </div>
+        </div>
+
+        <div id="gdm-error" class="gdm-error" role="alert" hidden></div>
+
+        <button type="submit" id="btn-gdm-submit" class="adw-btn adw-btn-suggested adw-btn-pill" style="width: 100%;">
+          <span id="btn-gdm-submit-label">Unlock Session</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="gdm-footer">
+      <span class="mono">ML-KEM-768 + X25519 + Dual-AEAD</span>
+      <span>|</span>
+      <span id="gdm-fp-label" class="mono">Amnesic RAM Session</span>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       GNOME 47 DESKTOP SHELL
+       ======================================================================== -->
+  <div id="desktop-shell" class="desktop-shell" hidden>
+    <!-- Top Bar (34px) -->
+    <header class="gnome-topbar" role="banner">
+      <div class="topbar-left">
+        <button
+          type="button"
+          id="btn-activities"
+          class="panel-pill"
+          aria-expanded="false"
+          aria-controls="activities-overview"
+        >
+          <span class="activities-dots" aria-hidden="true">
+            <span class="activities-dot-pill"></span>
+            <span class="activities-dot-circle"></span>
+          </span>
+          <span>Activities</span>
+        </button>
+
+        <button type="button" id="btn-focused-app" class="panel-pill" hidden>
+          <span id="top-focused-icon"></span>
+          <span id="top-focused-title">Desktop</span>
+        </button>
+      </div>
+
+      <div>
+        <button
+          type="button"
+          id="btn-top-clock"
+          class="panel-pill tabular"
+          aria-expanded="false"
+          aria-controls="calendar-popover"
+        >
+          <span id="top-clock-text">Sun Nov 22  00:00</span>
+        </button>
+      </div>
+
+      <div class="topbar-right">
+        <button
+          type="button"
+          id="btn-quick-settings"
+          class="panel-pill"
+          aria-expanded="false"
+          aria-controls="qs-popover"
+          aria-label="System Quick Settings"
+        >
+          <span id="top-qs-icons" class="adw-row-group" style="gap: 6px;"></span>
+          <span id="top-qs-summary" class="tabular" style="font-size: 11.5px;">Tor OK</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Center Popover: Monthly Calendar + Notification Center -->
+    <section id="calendar-popover" class="shell-popover calendar-popover" aria-label="Calendar and Notifications" hidden>
+      <div style="display: flex; flex-direction: column; gap: 10px; border-right: 1px solid var(--adw-border); padding-right: 12px;">
+        <div class="qs-header">
+          <strong style="font-size: 13px;">Notifications</strong>
+          <button type="button" id="btn-notif-clear" class="adw-btn adw-btn-sm">Clear</button>
+        </div>
+        <div id="notif-center-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 230px; overflow-y: auto;"></div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="qs-header">
+          <strong id="cal-month-title" style="font-size: 13.5px;">Month Year</strong>
+          <span class="adw-pill-badge info tabular" id="cal-today-pill">Today</span>
+        </div>
+        <div id="cal-grid" class="cal-grid"></div>
+      </div>
+    </section>
+
+    <!-- Right Popover: GNOME Quick Settings -->
+    <section id="qs-popover" class="shell-popover qs-popover" aria-label="Quick Settings" hidden>
+      <div class="qs-header">
+        <span id="qs-fp-badge" class="adw-pill-badge mono">ID: --</span>
+        <div class="adw-row-group">
+          <button type="button" id="btn-qs-settings" class="adw-btn adw-btn-sm" title="System Monitor &amp; Settings"></button>
+          <button type="button" id="btn-qs-lock" class="adw-btn adw-btn-sm" title="Lock Screen"></button>
+          <button type="button" id="btn-qs-panic" class="adw-btn adw-btn-sm adw-btn-destructive" title="Emergency Panic Burn">
+            <span>Panic Burn</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="qs-tiles-grid">
+        <button type="button" id="qs-tile-tor" class="qs-tile is-active">
+          <span id="qs-ico-tor"></span>
+          <span>
+            <span class="qs-tile-title">Tor NEWNYM</span>
+            <span id="qs-sub-tor" class="qs-tile-sub tabular">Circuit Ready</span>
+          </span>
+        </button>
+
+        <button type="button" id="qs-tile-browser" class="qs-tile">
+          <span id="qs-ico-browser"></span>
+          <span>
+            <span class="qs-tile-title">Tor Browser</span>
+            <span id="qs-sub-browser" class="qs-tile-sub tabular">Stopped (Lazy)</span>
+          </span>
+        </button>
+
+        <button type="button" id="qs-tile-onionshare" class="qs-tile">
+          <span id="qs-ico-onionshare"></span>
+          <span>
+            <span class="qs-tile-title">OnionShare</span>
+            <span id="qs-sub-onionshare" class="qs-tile-sub">Inactive</span>
+          </span>
+        </button>
+
+        <button type="button" id="qs-tile-firewall" class="qs-tile is-active">
+          <span id="qs-ico-firewall"></span>
+          <span>
+            <span class="qs-tile-title">UID Firewall</span>
+            <span id="qs-sub-firewall" class="qs-tile-sub tabular">CapEff=0</span>
+          </span>
+        </button>
+
+        <button type="button" id="qs-tile-relay" class="qs-tile qs-tile-wide">
+          <span id="qs-ico-relay"></span>
+          <span>
+            <span class="qs-tile-title">Federated Relay</span>
+            <span id="qs-sub-relay" class="qs-tile-sub tabular">Stopped</span>
+          </span>
+        </button>
+      </div>
+
+      <div>
+        <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">
+          Onion Mesh Theme &amp; Wallpaper
+        </div>
+        <div id="qs-wallpaper-grid" class="wallpaper-swatch-grid">
+          <button type="button" class="wallpaper-swatch is-selected" data-wp="onion-mesh" aria-label="Onion Mesh Wallpaper">
+            <canvas class="mesh-bg-canvas" width="160" height="68" aria-hidden="true"></canvas>
+            <span class="wallpaper-swatch-label">Onion Mesh</span>
+          </button>
+          <button type="button" class="wallpaper-swatch" data-wp="cobalt-vault" aria-label="Cobalt Vault Wallpaper">
+            <canvas class="mesh-bg-canvas" width="160" height="68" aria-hidden="true"></canvas>
+            <span class="wallpaper-swatch-label">Cobalt Vault</span>
+          </button>
+          <button type="button" class="wallpaper-swatch" data-wp="pqc-shield" aria-label="PQC Shield Wallpaper">
+            <canvas class="mesh-bg-canvas" width="160" height="68" aria-hidden="true"></canvas>
+            <span class="wallpaper-swatch-label">PQC Shield</span>
+          </button>
+          <button type="button" class="wallpaper-swatch" data-wp="tor-night" aria-label="Tor Night Wallpaper">
+            <canvas class="mesh-bg-canvas" width="160" height="68" aria-hidden="true"></canvas>
+            <span class="wallpaper-swatch-label">Tor Night</span>
+          </button>
+          <button type="button" class="wallpaper-swatch" data-wp="brushed-slate" aria-label="Brushed Slate Wallpaper">
+            <canvas class="mesh-bg-canvas" width="160" height="68" aria-hidden="true"></canvas>
+            <span class="wallpaper-swatch-label">Brushed Slate</span>
+          </button>
+          <button type="button" class="wallpaper-swatch" data-wp="stealth-oled" aria-label="Stealth OLED Wallpaper">
+            <canvas class="mesh-bg-canvas" width="160" height="68" aria-hidden="true"></canvas>
+            <span class="wallpaper-swatch-label">Stealth OLED</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activities Overview (Windows Expose + Global Search + 10-App Grid) -->
+    <section id="activities-overview" class="activities-overview" aria-label="Activities Overview" hidden>
+      <div class="overview-search-wrap">
+        <span id="overview-search-ico" class="overview-search-icon"></span>
+        <label for="overview-search-input" class="sr-only">Search applications, files, and vault secrets</label>
+        <input
+          id="overview-search-input"
+          type="search"
+          class="overview-search-input"
+          placeholder="Type to search apps, /home/onion files, or vault items..."
+          autocomplete="off"
+        >
+      </div>
+
+      <div id="overview-windows" class="overview-windows-strip" aria-label="Open windows"></div>
+      <div id="overview-results" class="overview-results-list" hidden></div>
+      <div id="overview-app-grid" class="overview-app-grid" aria-label="Applications grid"></div>
+    </section>
+
+    <!-- Main Mutter Multi-Window Workspace -->
+    <main id="workspace-stage" class="workspace-stage wallpaper-surface" tabindex="-1">
+      <canvas id="desktop-bg-canvas" class="mesh-bg-canvas" aria-hidden="true"></canvas>
+      <div id="wm-snap-preview" class="wm-snap-preview" hidden></div>
+    </main>
+
+    <!-- GNOME Dash / Dock -->
+    <div class="gnome-dock-wrap">
+      <nav id="gnome-dock" class="gnome-dock" aria-label="Pinned Applications"></nav>
+    </div>
+
+    <!-- Desktop Right-Click Context Menu -->
+    <div id="desktop-ctx-menu" class="desktop-context-menu" role="menu" hidden>
+      <button type="button" class="ctx-item" data-ctx-action="new-note" role="menuitem">New Secure Note</button>
+      <button type="button" class="ctx-item" data-ctx-action="open-files" role="menuitem">Open Files (Nautilus)</button>
+      <button type="button" class="ctx-item" data-ctx-action="open-relay" role="menuitem">Open OnionTalk Relay</button>
+      <button type="button" class="ctx-item" data-ctx-action="open-terminal" role="menuitem">Open Console</button>
+      <div class="ctx-sep"></div>
+      <button type="button" class="ctx-item" data-ctx-action="cycle-wallpaper" role="menuitem">Cycle Onion Mesh Wallpaper</button>
+      <button type="button" class="ctx-item" data-ctx-action="open-settings" role="menuitem">System Monitor &amp; Settings</button>
+      <div class="ctx-sep"></div>
+      <button type="button" class="ctx-item" data-ctx-action="lock" role="menuitem">Lock Session</button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       GUARDED PANIC BURN ALERT DIALOG
+       ======================================================================== -->
+  <div id="panic-modal" class="adw-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="panic-title" hidden>
+    <div class="adw-alert-dialog">
+      <h2 id="panic-title" style="margin: 0; font-size: 18px; color: var(--adw-danger-text);">
+        Emergency Anti-Forensic Panic Burn
+      </h2>
+      <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+        Immediately stops Tor Browser, dispatches <code class="mono">DEL_ONION</code> on active Hidden Services, kills all PTY shells, overwrites <code class="mono">/home/onion</code> with CSPRNG entropy, zeroizes session RAM, and rotates Tor circuits (<code class="mono">NEWNYM</code>).
+      </p>
+
+      <label class="adw-card" style="flex-direction: row; align-items: flex-start; cursor: pointer;" for="panic-arm-check">
+        <input id="panic-arm-check" type="checkbox" style="margin-top: 3px;">
+        <span>Arm Emergency Wipe: I confirm immediate RAM zeroization and <code class="mono">/home/onion</code> destruction.</span>
+      </label>
+
+      <label class="adw-card" style="flex-direction: row; align-items: flex-start; cursor: pointer;" for="panic-burn-vault">
+        <input id="panic-burn-vault" type="checkbox" style="margin-top: 3px;">
+        <span>Scorched-Earth Option: Permanently shred persistent <code class="mono">/vault/*.otpqcv2</code> storage.</span>
+      </label>
+
+      <div class="adw-row-group" style="justify-content: flex-end;">
+        <button type="button" id="btn-panic-cancel" class="adw-btn">Cancel</button>
+        <button type="button" id="btn-panic-confirm" class="adw-btn adw-btn-destructive" disabled>
+          Execute Panic Burn
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Accessible Toast Stack -->
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+</body>
+</html>

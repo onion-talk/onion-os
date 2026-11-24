@@ -1,0 +1,139 @@
+{
+  "policies": {
+    "BlockAboutConfig": true,
+    "DisableAppUpdate": true,
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisablePocket": true,
+    "DisableFirefoxAccounts": true,
+    "DisableFormHistory": true,
+    "DontCheckDefaultBrowser": true,
+    "NoDefaultBookmarks": true,
+    "DisplayBookmarksToolbar": "always",
+    "OfferToSaveLogins": false,
+    "PasswordManagerEnabled": false,
+    "SanitizeOnShutdown": true,
+    "OverrideFirstRunPage": "",
+    "OverridePostUpdatePage": "",
+    "Homepage": {
+      "URL": "about:blank",
+      "Locked": true,
+      "StartPage": "homepage"
+    },
+    "ManagedBookmarks": [
+      {
+        "toplevel_name": "Tor v3 Bookmarks"
+      },
+      {
+        "name": "Verify Tor Circuit",
+        "url": "https://check.torproject.org/"
+      },
+      {
+        "name": "DuckDuckGo (.onion v3)",
+        "url": "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/"
+      },
+      {
+        "name": "Tor Project (.onion v3)",
+        "url": "http://2gzyxa5ihm7nsggfxnu52rck2vv4rvmdlkiu3zzui5du4xyclen53wid.onion/"
+      },
+      {
+        "name": "OnionTalk Official",
+        "url": "https://oniontalk.co/"
+      }
+    ],
+    "DNSOverHTTPS": {
+      "Enabled": false,
+      "Locked": true
+    },
+    "Proxy": {
+      "Mode": "manual",
+      "Locked": true,
+      "SOCKSProxy": "127.0.0.1:9050",
+      "SOCKSVersion": 5,
+      "UseProxyForDNS": true,
+      "Passthrough": ""
+    },
+    "Preferences": {
+      "media.peerconnection.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "privacy.resistFingerprinting": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "webgl.disabled": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "gfx.webrender.software": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "layers.acceleration.disabled": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "dom.ipc.processCount": {
+        "Value": 2,
+        "Status": "locked"
+      },
+      "browser.tabs.closeWindowWithLastTab": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.tabs.warnOnClose": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.sessionstore.resume_from_crash": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "toolkit.cosmeticAnimations.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "accessibility.force_disabled": {
+        "Value": 1,
+        "Status": "locked"
+      },
+      "network.dns.disablePrefetch": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "network.dns.disablePrefetchFromHTTPS": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "network.predictor.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "network.prefetch-next": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "network.proxy.socks_remote_dns": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "browser.cache.disk.enable": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "geo.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "toolkit.telemetry.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "datareporting.healthreport.uploadEnabled": {
+        "Value": false,
+        "Status": "locked"
+      }
+    }
+  }
+}
