@@ -40,7 +40,7 @@
 
 The **Onion Mesh** desktop shell runs at `60fps` on the **Obsidian &amp; Cobalt Shield** palette (`#0A0E14` / `#111720` / `#151C26`), combining 6 procedural `<canvas>` wallpapers, 8-edge window resize, 50/50 edge snap, and global search under `default-src 'self'` with zero external CDNs or web fonts. Inside the container, 3 Linux UIDs isolate Tor (`UID 10016 oniontor`), the airgapped browser sandbox (`UID 10015 sandbox`), and the desktop/messenger runtime (`UID 10014 onion`), while boot `iptables`/`ip6tables` rules lock external egress strictly to `--uid-owner 10016` before clearing `CapBnd=0x0` (`NoNewPrivs=1`).
 
-On `/ot/`, OnionOS ships `eriktonon/oniontalk-web:v1.8.1-build74` (`ENVELOPE_V3`, 18-gateway Dual-Ring Rendezvous, 12 MB E2EE attachments, 1x view/listen-once media, `ML-KEM-768` PQC Groups V3, and `OnionVoice`). Operators can also launch or tear down an on-demand S/Kademlia + GossipSub v1.2 Federated Relay (`oniontalk-relay-rs:1.8.1` on `127.0.0.1:8088`) in 1 click using either a disposable RAM `.onion` service or an `OTPQCV2`-persisted identity with instant `otnode1:` voucher issuance.
+On `/ot/`, OnionOS ships `eriktonon/oniontalk-web:v1.8.2-build75` (`ENVELOPE_V3`, 18-gateway Dual-Ring Rendezvous, 12 MB E2EE attachments, 1x view/listen-once media, `ML-KEM-768` PQC Groups V3, and `OnionVoice`). Operators can also launch or tear down an on-demand S/Kademlia + GossipSub v1.2 Federated Relay (`oniontalk-relay-rs:1.8.2` on `127.0.0.1:8088`) in 1 click using either a disposable RAM `.onion` service or an `OTPQCV2`-persisted identity with instant `otnode1:` voucher issuance.
 
 ### Official Docker Hub Images &amp; Immutable Digest (`v1.0.0`)
 
@@ -48,9 +48,9 @@ All 3 tags point to the exact same verified Linux `amd64` container image:
 
 | Docker Hub Repository &amp; Tag | Role | Immutable Digest (`SHA-256`) |
 | :--- | :--- | :--- |
-| **`eriktonon/onion-os:1.0.0`** | **Pinned immutable release (Recommended)** | `sha256:f11b2042e7791d4e3a2e00df65f4191132d7c493d6fee48bcf4af9b8aaa6fb10` |
-| `eriktonon/onion-os:v1.0.0` | Semver `v`-prefixed release alias | `sha256:f11b2042e7791d4e3a2e00df65f4191132d7c493d6fee48bcf4af9b8aaa6fb10` |
-| `eriktonon/onion-os:latest` | Rolling stable workstation channel (`1.0.0`) | `sha256:f11b2042e7791d4e3a2e00df65f4191132d7c493d6fee48bcf4af9b8aaa6fb10` |
+| **`eriktonon/onion-os:1.0.0`** | **Pinned immutable release (Recommended)** | `sha256:d6cd7c5ac3e5c4a76ea37fa2afccdc7e44b98ca35825d188131d8f248b0f5f78` |
+| `eriktonon/onion-os:v1.0.0` | Semver `v`-prefixed release alias | `sha256:d6cd7c5ac3e5c4a76ea37fa2afccdc7e44b98ca35825d188131d8f248b0f5f78` |
+| `eriktonon/onion-os:latest` | Rolling stable workstation channel (`1.0.0`) | `sha256:d6cd7c5ac3e5c4a76ea37fa2afccdc7e44b98ca35825d188131d8f248b0f5f78` |
 
 ---
 
@@ -59,7 +59,7 @@ All 3 tags point to the exact same verified Linux `amd64` container image:
 | **1. Zero-Root `OTPQCV2` Lock Screen** | **2. Side-by-Side `OnionTalk` &amp; On-Demand Federated Relay** |
 | :---: | :---: |
 | <img src="./docs/screenshots/01-lock-screen-vault.png" width="460" alt="OnionOS v1.0.0 Lock Screen" /> | <img src="./docs/screenshots/02-desktop-oniontalk-relay.png" width="460" alt="OnionOS v1.0.0 OnionTalk & Federated Relay" /> |
-| *Procedural 13-node `Onion Mesh` `<canvas>`, centered `#111720` Obsidian card, Argon2id (19 MiB) + `ML-KEM-768` unlock, and live Tor SOCKS5h status.* | *Simultaneous multi-window desktop running `OnionTalk v1.8.1` (`/ot/`) alongside an active `oniontalk-relay-rs` Hidden Service v3 QR &amp; S/Kademlia telemetry.* |
+| *Procedural 13-node `Onion Mesh` `<canvas>`, centered `#111720` Obsidian card, Argon2id (19 MiB) + `ML-KEM-768` unlock, and live Tor SOCKS5h status.* | *Simultaneous multi-window desktop running `OnionTalk v1.8.2` (`/ot/`) alongside an active `oniontalk-relay-rs` Hidden Service v3 QR &amp; S/Kademlia telemetry.* |
 
 | **3. System Quick Settings, 6 Live `Onion Mesh` Themes &amp; Panic Burn** |
 | :---: |
@@ -72,9 +72,9 @@ All 3 tags point to the exact same verified Linux `amd64` container image:
 
 | Application | Capabilities |
 | :--- | :--- |
-| **1. OnionTalk (`v1.8.1`)** | Full post-quantum P2P messenger (`ENVELOPE_V3`, `otcrl1`, 1x ephemeral media, HD voice notes &amp; `OnionVoice`) |
-| **2. OnionTalk Relay (`1.8.1`)** | On-demand Federated Mesh Relay (`ADD_ONION` / `DEL_ONION`, `~9 MiB` active RAM, `otnode1:` voucher generator &amp; live DHT telemetry) |
-| **3. Tor Browser (On-Demand)** | Hardened Firefox ESR 128 in isolated `UID 10015` (`Xvfb` + `0600 .Xauthority` + `noVNC`), suspended at `0 MiB` when idle |
+| **1. OnionTalk (`v1.8.2`)** | Full post-quantum P2P messenger (`ENVELOPE_V3`, `otcrl1`, 1x ephemeral media, HD voice notes &amp; `OnionVoice`) |
+| **2. OnionTalk Relay (`1.8.2`)** | On-demand Federated Mesh Relay (`ADD_ONION` / `DEL_ONION`, `~9 MiB` active RAM, `otnode1:` voucher generator &amp; live DHT telemetry) |
+| **3. Tor Browser (On-Demand)** | Hardened Firefox ESR 153.x in isolated `UID 10015` (`Xvfb` + `0600 .Xauthority` + `noVNC`), suspended at `0 MiB` when idle |
 | **4. Files (Dual-Root)** | Dual-root file manager switching directly between volatile **Amnesic RAM (`/home/onion`)** and **Encrypted Vault (`/vault/files.otpqcv2`)** |
 | **5. OnionShare Dropzone** | Ephemeral `.onion` v3 Hidden Services (`ADD_ONION NEW:ED25519-V3`) for 1-time file sharing &amp; anonymous zero-JS dead-drops |
 | **6. Passwords &amp; 2FA** | `OTPQCV2` secret manager with live **RFC 6238 6-digit TOTP** codes &amp; bias-free CSPRNG passphrase/password generator |
@@ -118,7 +118,7 @@ docker run -d \
   --tmpfs /home/onion:rw,nosuid,nodev,size=256m,uid=10014,gid=10014,mode=0700 \
   -p 127.0.0.1:8430:8430 \
   -v onionos_vault:/vault \
-  eriktonon/onion-os:1.0.0@sha256:f11b2042e7791d4e3a2e00df65f4191132d7c493d6fee48bcf4af9b8aaa6fb10
+  eriktonon/onion-os:1.0.0@sha256:d6cd7c5ac3e5c4a76ea37fa2afccdc7e44b98ca35825d188131d8f248b0f5f78
 ```
 
 Open **`http://127.0.0.1:8430`** in your browser (any custom host loopback port such as `-p 127.0.0.1:8888:8430` is also supported automatically).
@@ -145,7 +145,7 @@ flowchart TB
         Boot["PID 1 tini -> entrypoint.sh (Fail-Closed Bootstrap)\n1. SHA-256 verify onion-os + oniontalk-node + oniontalk-relay-rs\n2. iptables/ip6tables OUTPUT: ACCEPT lo | --sport 8430 ESTABLISHED | --uid-owner 10016 | REJECT\n3. Drop Bounding Set: setpriv --clear-groups --inh-caps=-all --bounding-set=-all --no-new-privs"]
 
         Tor["UID 10016 (oniontor)\nTor 0.4.9.x Daemon (Equi-X PoW)\nSOCKS5h :9050 | ControlPort :9051"]
-        Sandbox["UID 10015 (sandbox)\nOn-Demand Firefox ESR 128 + Xvfb (.Xauthority 0600)\nZero access to /vault, /home/onion, /data or /tor-cookie"]
+        Sandbox["UID 10015 (sandbox)\nOn-Demand Firefox ESR 153.x + Xvfb (.Xauthority 0600)\nZero access to /vault, /home/onion, /data or /tor-cookie"]
         Core["UID 10014 (onion)\nonion-os (:8430) + oniontalk-node (:8420/:8080)\n+ On-Demand oniontalk-relay-rs (:8088)"]
 
         Boot --> Tor
@@ -180,6 +180,8 @@ OnionTalk and OnionOS are free, ad-free, and collect zero telemetry. Community c
 | **Solana** | `SOL` | `3E8L1Hdqe7Xk6GCrzHbtY5sReAfLFc9CdwgZxP7qaoHq` |
 
 - **Official Website:** [https://oniontalk.co](https://oniontalk.co)
+- **Contributing Guide:** [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **Security Policy:** [SECURITY.md](./SECURITY.md)
 - **Wire Protocol Specification:** [oniontalk-relay/docs/PROTOCOL.md](https://github.com/onion-talk/oniontalk-relay/blob/main/docs/PROTOCOL.md)
 - **Instagram:** [https://www.instagram.com/oniontalk.app/](https://www.instagram.com/oniontalk.app/) (`@oniontalk.app`)
 - **License:** [MIT License](./LICENSE) (`Copyright (c) 2026 OnionTalk Organization`)

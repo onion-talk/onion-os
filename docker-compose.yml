@@ -63,7 +63,7 @@ services:
       retries: 3
 
   oniontalk-messenger:
-    image: eriktonon/oniontalk-web:v1.8.1-build74@sha256:c8f81fe7475441e5e8c94a48204c03064b102dec1d726547761d62ac6968d735
+    image: eriktonon/oniontalk-web:v1.8.2-build75@sha256:fd1e8362472f40efb5bd63b1c51a94f66edd3c0d1b4978162fbf9ffb946c01e6
     container_name: oniontalk-messenger
     profiles:
       - whonix-split

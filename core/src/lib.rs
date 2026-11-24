@@ -490,7 +490,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/api/onionshare/status", get(api_onionshare_status))
         .route("/api/onionshare/start", post(api_onionshare_start))
         .route("/api/onionshare/stop", post(api_onionshare_stop))
-        // Sovereign P2P Mesh Relay (`oniontalk-relay-rs:1.8.1` on `127.0.0.1:8088`)
+        // Sovereign P2P Mesh Relay (`oniontalk-relay-rs:1.8.2` on `127.0.0.1:8088`)
         .route("/api/relay/status", get(api_relay_status))
         .route("/api/relay/start", post(api_relay_start))
         .route("/api/relay/stop", post(api_relay_stop))
@@ -3071,7 +3071,7 @@ mod tests {
                         "avg_peer_rtt_ms": 142.5,
                         "invalid_peers_blocked": 3,
                         "spoofed_acks_blocked": 1,
-                        "engine": "oniontalk-relay-rs/1.8.1",
+                        "engine": "oniontalk-relay-rs/1.8.2",
                         "routing_engine": "kademlia-onion-v3",
                         "zero_trust_mode": "strict-ed25519-pow"
                     }))

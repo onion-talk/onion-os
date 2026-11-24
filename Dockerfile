@@ -4,7 +4,7 @@
 # =============================================================================
 FROM rust:slim-bookworm@sha256:86234e857a413004348b471d11a4ebe1aa92d2eae2b6b143cac68fd1ac3c48be AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y --no-install-recommends \
         pkg-config \
         binutils \
         cmake \
@@ -28,14 +28,14 @@ RUN cargo build --release && \
     sha256sum /usr/local/bin/onion-os > /dist/manifest.sha256
 
 # =============================================================================
-# Stage 2: Embedded OnionTalk P2P Post-Quantum Client (v1.8.1-build74 SHA-256)
+# Stage 2: Embedded OnionTalk P2P Post-Quantum Client (v1.8.2-build75 SHA-256)
 # =============================================================================
-FROM eriktonon/oniontalk-web:v1.8.1-build74@sha256:c8f81fe7475441e5e8c94a48204c03064b102dec1d726547761d62ac6968d735 AS oniontalk_bin
+FROM eriktonon/oniontalk-web:v1.8.2-build75@sha256:fd1e8362472f40efb5bd63b1c51a94f66edd3c0d1b4978162fbf9ffb946c01e6 AS oniontalk_bin
 
 # =============================================================================
-# Stage 3: Embedded OnionTalk Federated Relay Binary (v1.8.1 SHA-256)
+# Stage 3: Embedded OnionTalk Federated Relay Binary (v1.8.2 SHA-256)
 # =============================================================================
-FROM eriktonon/oniontalk-relay-rs:1.8.1@sha256:8af6943f1ffde9a8ed9d4d1b9a85fe7890b187ad05f81785189e482b7d6ce670 AS oniontalk_relay_bin
+FROM eriktonon/oniontalk-relay-rs:1.8.2@sha256:a12c034159a32edc37a52d083471d274ccc22b293fb0aa921ef1e642a5f59054 AS oniontalk_relay_bin
 
 # =============================================================================
 # Stage 4: Sovereign Debian Bookworm Runtime (Tor 0.4.9.x PoW + 3-UID + Onion Mesh)
@@ -47,11 +47,11 @@ LABEL org.opencontainers.image.title="OnionOS 1.0.0 (Onion Mesh Sovereign Tor PQ
       org.opencontainers.image.vendor="OnionTalk Project" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.source="https://github.com/onion-talk/onion-os" \
-      org.opencontainers.image.description="Consolidated Amnesic Tor 0.4.9.x Equi-X PoW & Post-Quantum Linux Workstation (Onion Mesh Desktop, 3-UID Isolation, Netfilter Fail-Closed Lock, OnionTalk v1.8.1, On-Demand Federated Relay & OTPQCV2 Vault)"
+      org.opencontainers.image.description="Consolidated Amnesic Tor 0.4.9.x Equi-X PoW & Post-Quantum Linux Workstation (Onion Mesh Desktop, 3-UID Isolation, Netfilter Fail-Closed Lock, OnionTalk v1.8.2, On-Demand Federated Relay & OTPQCV2 Vault)"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y --no-install-recommends \
         apt-transport-https \
         ca-certificates \
         curl \
@@ -118,7 +118,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     printf '%s\n' \
         '==========================================================================' \
         '  OnionOS 1.0.0 — Onion Mesh Sovereign Amnesic Tor v3 & Post-Quantum Linux' \
-        '  Tor Stack : Tor 0.4.9.x (Equi-X PoW) | OnionTalk v1.8.1 + Relay 1.8.1' \
+        '  Tor Stack : Tor 0.4.9.x (Equi-X PoW) | OnionTalk v1.8.2 + Relay 1.8.2' \
         '  Netfilter : OUTPUT locked to lo + UID 10016 (oniontor) | CapBnd=0x0' \
         '  Workspace : /home/onion (RAM tmpfs, zero swap, core dumps disabled)' \
         '  CLI Suite : onion-pqc | onion-clean | onion-osint | gpg | qrencode' \

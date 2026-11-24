@@ -2742,7 +2742,7 @@
     });
   }
 
-  /* 11. OnionTalk Federated Relay Node Manager (oniontalk-relay-rs v1.8.1) */
+  /* 11. OnionTalk Federated Relay Node Manager (oniontalk-relay-rs v1.8.2) */
   function registerRelayApp(wm) {
     let persistentMode = false;
     let pollTimer = null;
@@ -2813,7 +2813,7 @@
             kpiCell('Online / Hibernating Nodes', `${s.onlineNodes ?? 0} online / ${s.hibernatingNodes ?? 0} hibernating`),
             kpiCell('Avg Peer RTT (ms)', `${s.avgPeerRttMs ?? 0} ms`),
             kpiCell('Anti-Sybil / Spoofed ACKs Blocked', `${s.invalidPeersBlocked ?? 0} invalid / ${s.spoofedAcksBlocked ?? 0} spoofed`),
-            kpiCell('Engine', s.engine || 'oniontalk-relay-rs/1.8.1'),
+            kpiCell('Engine', s.engine || 'oniontalk-relay-rs/1.8.2'),
             kpiCell('Routing Engine', s.routingEngine || 'epidemic-gossip-v3'),
             kpiCell('Zero-Trust Suite', s.zeroTrustMode !== false ? 'Zero-Trust Enforced (Ed25519 + OTPQCV2)' : 'Standard')
           );
@@ -3004,7 +3004,7 @@
         const voucherCard = el('div', { className: 'adw-card' },
           el('strong', { text: 'Founder / Operator Voucher (otnode1:)' }),
           el('span', { style: { fontSize: '12px', color: 'var(--text-muted)' },
-            text: 'Generate a signed operator token and paste it into the Founder / Relay Node section of OnionTalk v1.8.1 to claim zero-trust relay administration.',
+            text: 'Generate a signed operator token and paste it into the Founder / Relay Node section of OnionTalk v1.8.2 to claim zero-trust relay administration.',
           }),
           el('div', { className: 'adw-row-group' },
             el('button', {

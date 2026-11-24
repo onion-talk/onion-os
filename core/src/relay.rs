@@ -1,4 +1,4 @@
-//! Sovereign P2P Mesh Relay Controller (`oniontalk-relay-rs:1.8.1` On-Demand on `127.0.0.1:8088`)
+//! Sovereign P2P Mesh Relay Controller (`oniontalk-relay-rs:1.8.2` On-Demand on `127.0.0.1:8088`)
 //! - Ephemeral (`ADD_ONION NEW:ED25519-V3`) or PQC-Persistent (`/vault/relay.otpqcv2` `ADD_ONION ED25519-V3:<keyblob>`)
 //! - Strict Base64 keyblob sanitizer preventing Tor ControlPort CRLF/command injection
 //! - CSPRNG RAM-only `RELAY_ADMIN_TOKEN` (`Zeroizing<String>`) & process-group teardown (`kill(-pgid, SIGKILL)`)

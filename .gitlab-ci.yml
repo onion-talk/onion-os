@@ -28,6 +28,7 @@ validate_manifests_and_scripts:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
     - if: $CI_COMMIT_TAG =~ /^v/
 
 rust_core_unit_tests:
@@ -41,7 +42,6 @@ rust_core_unit_tests:
     key: "onionos-cargo-$CI_COMMIT_REF_SLUG"
     paths:
       - .cargo/
-      - core/target/
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends pkg-config binutils cmake build-essential perl && rm -rf /var/lib/apt/lists/*
   script:
@@ -50,6 +50,7 @@ rust_core_unit_tests:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
     - if: $CI_COMMIT_TAG =~ /^v/
 
 build_hardened_elf:
@@ -63,7 +64,6 @@ build_hardened_elf:
     key: "onionos-cargo-$CI_COMMIT_REF_SLUG"
     paths:
       - .cargo/
-      - core/target/
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends pkg-config binutils cmake build-essential perl && rm -rf /var/lib/apt/lists/*
   script:
@@ -79,6 +79,7 @@ build_hardened_elf:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
     - if: $CI_COMMIT_TAG =~ /^v/
 
 security_sovereign_invariants_gate:
@@ -89,34 +90,78 @@ security_sovereign_invariants_gate:
   needs:
     - build_hardened_elf
   before_script:
-    - apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /var/lib/apt/lists/*
+    - apt-get update && apt-get install -y --no-install-recommends jq python3 ca-certificates && rm -rf /var/lib/apt/lists/*
   script:
-    - grep -q '"127.0.0.1:8430:8430"' docker-compose.yml
-    - grep -q "image: eriktonon/onion-os:1.0.0" docker-compose.yml
-    - grep -q "read_only: true" docker-compose.yml
-    - grep -q "pids_limit: 2048" docker-compose.yml
-    - grep -q "mem_limit: 2048m" docker-compose.yml
-    - grep -q "memswap_limit: 2048m" docker-compose.yml
-    - grep -q "no-new-privileges:true" docker-compose.yml
-    - grep -q "ONIONOS_RELAY_BIND_PORT=8088" docker-compose.yml
-    - grep -q "eriktonon/oniontalk-web:v1.8.1-build74@sha256:c8f81fe7475441e5e8c94a48204c03064b102dec1d726547761d62ac6968d735" Dockerfile
-    - grep -q "eriktonon/oniontalk-relay-rs:1.8.1@sha256:8af6943f1ffde9a8ed9d4d1b9a85fe7890b187ad05f81785189e482b7d6ce670" Dockerfile
-    - grep -q -- "--sport 8430" entrypoint.sh
-    - grep -q -- "--uid-owner 10016 -j ACCEPT" entrypoint.sh
-    - grep -q -- "--reuid=10015" entrypoint.sh
-    - grep -q -- "--bounding-set=-all" entrypoint.sh
-    - grep -q -- "--no-new-privs" entrypoint.sh
-    - jq -e '.policies.BlockAboutConfig == true and .policies.Homepage.Locked == true and .policies.DNSOverHTTPS.Enabled == false' policies.json >/dev/null
-    - jq -e '.policies.Proxy.SOCKSProxy == "127.0.0.1:9050" and .policies.Proxy.UseProxyForDNS == true' policies.json >/dev/null
-    - jq -e '.policies.Preferences["media.peerconnection.enabled"].Value == false and .policies.Preferences["privacy.resistFingerprinting"].Value == true and .policies.Preferences["webgl.disabled"].Value == true' policies.json >/dev/null
     - |
+      set -eu
+      grep -q '"127.0.0.1:8430:8430"' docker-compose.yml
+      grep -q "image: eriktonon/onion-os:1.0.0" docker-compose.yml
+      grep -q "read_only: true" docker-compose.yml
+      grep -q "pids_limit: 2048" docker-compose.yml
+      grep -q "mem_limit: 2048m" docker-compose.yml
+      grep -q "memswap_limit: 2048m" docker-compose.yml
+      grep -q "no-new-privileges:true" docker-compose.yml
+      grep -q "ONIONOS_RELAY_BIND_PORT=8088" docker-compose.yml
+      grep -q "eriktonon/oniontalk-web:v1.8.2-build75@sha256:fd1e8362472f40efb5bd63b1c51a94f66edd3c0d1b4978162fbf9ffb946c01e6" Dockerfile
+      grep -q "eriktonon/oniontalk-relay-rs:1.8.2@sha256:a12c034159a32edc37a52d083471d274ccc22b293fb0aa921ef1e642a5f59054" Dockerfile
+      grep -q -- "--sport 8430" entrypoint.sh
+      grep -q -- "--uid-owner 10016 -j ACCEPT" entrypoint.sh
+      grep -q -- "--reuid=10015" entrypoint.sh
+      grep -q -- "--bounding-set=-all" entrypoint.sh
+      grep -q -- "--no-new-privs" entrypoint.sh
+      jq -e '.policies.BlockAboutConfig == true and .policies.Homepage.Locked == true and .policies.DNSOverHTTPS.Enabled == false' policies.json >/dev/null
+      jq -e '.policies.Proxy.SOCKSProxy == "127.0.0.1:9050" and .policies.Proxy.UseProxyForDNS == true' policies.json >/dev/null
+      jq -e '.policies.Preferences["media.peerconnection.enabled"].Value == false and .policies.Preferences["privacy.resistFingerprinting"].Value == true and .policies.Preferences["webgl.disabled"].Value == true' policies.json >/dev/null
       if [ -d core/static ] && grep -RInE 'https?://(fonts\.googleapis|fonts\.gstatic|cdn\.jsdelivr|unpkg\.com|cdnjs\.cloudflare)' core/static/ >/dev/null 2>&1; then
         echo "CRITICAL: External CDN reference detected in core/static/"
         exit 1
       fi
+    - |
+      python3 - <<'PY'
+      import json, os, pathlib, re, sys, time, urllib.request
+      lock_path = pathlib.Path("core/Cargo.lock")
+      if not lock_path.exists():
+          print("[OSV-GATE] Missing core/Cargo.lock", file=sys.stderr)
+          sys.exit(1)
+      pkgs = list(dict.fromkeys(re.findall(r'\[\[package\]\]\s+name\s*=\s*"([^"]+)"\s+version\s*=\s*"([^"]+)"', lock_path.read_text("utf-8"))))
+      if not pkgs:
+          print("[OSV-GATE] 0 packages parsed from core/Cargo.lock", file=sys.stderr)
+          sys.exit(1)
+      if os.environ.get("STRIX_OFFLINE_AIRGAP") == "1":
+          print(f"[OSV-GATE] STRIX_OFFLINE_AIRGAP=1 set; skipped {len(pkgs)} crates")
+          sys.exit(0)
+      cache, blocking = {}, []
+      for i in range(0, len(pkgs), 500):
+          chunk = pkgs[i:i+500]
+          body = json.dumps({"queries": [{"package": {"name": n, "ecosystem": "crates.io"}, "version": v} for n, v in chunk]}).encode()
+          req = urllib.request.Request("https://api.osv.dev/v1/querybatch", data=body, method="POST", headers={"Content-Type": "application/json", "User-Agent": "onionos-osv-gate/1.0"})
+          resp = json.loads(urllib.request.urlopen(req, timeout=20).read().decode())
+          for (n, v), r in zip(chunk, resp.get("results") or []):
+              for ve in r.get("vulns") or []:
+                  vid = ve.get("id", "")
+                  if vid not in cache:
+                      cache[vid] = json.loads(urllib.request.urlopen(f"https://api.osv.dev/v1/vulns/{vid}", timeout=15).read().decode())
+                  doc = cache[vid]
+                  aliases = [str(a) for a in (doc.get("aliases") or [])]
+                  has_cve = vid.startswith(("CVE-", "GHSA-")) or any(a.startswith(("CVE-", "GHSA-")) for a in aliases)
+                  dbs_list = [(a.get("database_specific") or {}) for a in (doc.get("affected") or [])]
+                  info_tags = {str(d["informational"]).lower() for d in dbs_list if d.get("informational")}
+                  cats = {str(c).lower() for d in dbs_list for c in (d.get("categories") or [])}
+                  has_cvss = any(bool(d.get("cvss")) for d in dbs_list)
+                  slc = str(doc.get("summary") or "").lower()
+                  if not has_cve and not doc.get("severity") and not has_cvss and not cats and (info_tags == {"unmaintained"} or (not info_tags and ("is unmaintained" in slc or "no longer maintained" in slc))):
+                      continue
+                  blocking.append(f"{n}@{v} -> {vid} ({','.join(aliases) or doc.get('summary', 'security-advisory')})")
+      if blocking:
+          for b in blocking:
+              print(f"[OSV-GATE] BLOCKED: {b}", file=sys.stderr)
+          sys.exit(1)
+      print(f"[OSV-GATE] PASS: {len(pkgs)} crates in core/Cargo.lock verified clean via OSV.dev")
+      PY
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
     - if: $CI_COMMIT_TAG =~ /^v/
 
 deploy_release_gate:
@@ -128,9 +173,11 @@ deploy_release_gate:
     - security_sovereign_invariants_gate
   when: manual
   script:
-    - echo "OnionOS v1.0.0 consolidated sovereign artifact verified (SHA-256):"
-    - cat manifest.sha256
-    - echo "Ready for controlled OCI deployment: docker compose up -d --build"
+    - |
+      echo "OnionOS v1.0.0 consolidated sovereign artifact verified (SHA-256):"
+      cat manifest.sha256
+      echo "Ready for controlled OCI deployment: docker compose up -d --build"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
     - if: $CI_COMMIT_TAG =~ /^v/

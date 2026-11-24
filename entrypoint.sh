@@ -30,7 +30,7 @@ cat <<'EOF' > /home/onion/README.txt
 OnionOS 1.0.0 — Onion Mesh Sovereign Amnesic Tor & Post-Quantum Workstation
 ===========================================================================
 - Tor 0.4.9.x PoW    : Equi-X anti-DoS defenses + Tor GeoIP telemetry enabled.
-- OnionTalk v1.8.1   : P2P Messenger (:8420/:8080) + On-Demand Federated Relay (:8088).
+- OnionTalk v1.8.2   : P2P Messenger (:8420/:8080) + On-Demand Federated Relay (:8088).
 - Netfilter UID Lock : Fail-closed; outbound WAN strictly restricted to UID 10016 (tor).
 - 3-UID Isolation    : Tor (10016) | Browser Sandbox (10015) | Compositor & Vault (10014).
 - Runtime Privileges : CapEff=0x0, CapBnd=0x0, NoNewPrivs=1 across all runtime daemons.
@@ -202,7 +202,7 @@ setpriv \
         ONIONOS_BROWSER_TOKEN_FILE=/run/onionos/browser.token \
         /usr/local/bin/onion-os browser-agent >/dev/null 2>&1 &
 
-# 5. Launch embedded OnionTalk P2P Messenger v1.8.1-build74 on 127.0.0.1:8420 (relay :8080) under UID 10014
+# 5. Launch embedded OnionTalk P2P Messenger v1.8.2-build75 on 127.0.0.1:8420 (relay :8080) under UID 10014
 #    (`--clear-groups` + `env -i`: EXTERNAL_TOR=1 uses SOCKS5 :9050 + /data/hostname, zero access to /tor-cookie or browser.token)
 if [ -x /usr/local/bin/oniontalk-node ]; then
     setpriv \
